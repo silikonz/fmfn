@@ -5,47 +5,36 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Theos
-        uses: Randomblock1/theos-action@v1
-
-      # - name: Build (rootful)
-      #   env:
-      #     THEOS_PLATFORM_SDK_ROOT: ${{ github.workspace }}/theos/sdks/iPhoneOS10.3.sdk
-      #     ARCHS: "arm64 armv7"
-      #   run: |
-      #      make clean package
-      #      ls -al
-      #      find . -name '*.deb'
-      #      mkdir -p build/rootful
-      #      mv ./packages/*.deb build/rootful/ || true
-
+        run: |
+          brew install ldid make
+          echo "$(brew --prefix make)/libexec/gnubin" >> "$GITHUB_PATH"
+          echo "THEOS=$GITHUB_WORKSPACE/theos" >> "$GITHUB_ENV"
+          git clone --recursive https://github.com/theos/theos.git "$GITHUB_WORKSPACE/theos"
+      
+      - name: Install SDK
+        run: |
+          "$THEOS/bin/install-sdk" iPhoneOS15.6
+      
       - name: Build (rootless)
         env:
-          THEOS_PLATFORM_SDK_ROOT: ${{ github.workspace }}/theos/sdks/iPhoneOS15.6.sdk
+          SDKVERSION: "15.6"
           THEOS_PACKAGE_SCHEME: rootless
           ARCHS: "arm64 arm64e"
           FINALPACKAGE: 1
         run: |
-           make clean package
-           ls -al
-           find . -name '*.deb'
-           mkdir -p build/rootless
-           mv ./packages/*.deb build/rootless/ || true
+          make clean package
+          mkdir -p build/rootless
+          mv ./packages/*.deb build/rootless/
 
-      # - name: Upload Artifacts (rootful)
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: rootful-build
-      #     path: build/rootful/*.deb
-
-      - name: Upload Artifacts (rootless)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: rootless-build
-          path: build/rootless/*.deb
+          name: build
+          path: build/
