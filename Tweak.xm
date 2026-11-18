@@ -94,7 +94,7 @@ static void _fmfn_showNotification(NSString *title, NSString *subtitle, NSString
     bulletin.title = title;
     bulletin.subtitle = subtitle;
     bulletin.message = message;
-    bulletin.sectionID = @"com.apple.findmy";
+    bulletin.sectionID = @"com.apple.gamecenter.widgets";
     bulletin.date = [NSDate date];
     bulletin.clearable = YES;
 
